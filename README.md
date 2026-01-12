@@ -21,6 +21,9 @@ v4
 - Added boot-time wait for Pulse socket before starting MPD.
 - Boot automation now starts audio reliably after reboot.
 
+v5
+- Added GPIO button handler with debounce and single/double/long press detection.
+
 Backup MPD/system configs
 - Added config backups for MPD and ALSA state under `config/`.
 
