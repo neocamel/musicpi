@@ -1,0 +1,55 @@
+sw_volume: 100
+audio_device_state:1:Analog Out
+state: stop
+random: 0
+repeat: 0
+single: 0
+consume: 0
+crossfade: 0
+mixrampdb: 0
+mixrampdelay: -1
+lastloadedplaylist: 
+playlist_begin
+0:Blues Traveler - But Anyway.mp3
+1:Harry Styles - Late Night Talking.mp3
+2:OneRepublic - I Aint Worried.mp3
+3:Blue Oyster Cult - Burnin For You.mp3
+4:Mott the Hoople - All the Young Dudes.mp3
+5:Smashing Pumpkins - 1979.mp3
+6:Daisy - Record Player.mp3
+7:Galactic - Going Straight Crazy.mp3
+8:Pearl Jam - Just Breathe.mp3
+9:Portgul the Man - Feel It Still.mp3
+10:Broken Bells - Ghost Inside.mp3
+11:Blue Merle - Burning In The Sun.mp3
+12:John Mayer - Bold As Lover.mp3
+13:Amos Lee - Shoulda Known Better.mp3
+14:Eagles - In The City.mp3
+15:Guster - What You Call Lover.mp3
+16:Queen - Youre My Best Friend.mp3
+17:Phish - Wolfmans Brother.mp3
+18:Neil Diamond - Cracklin Rosie.mp3
+19:Rebelution - Old School Feeling.mp3
+20:City and Colour - Natural Disaster.mp3
+21:Saint Motel - My Type.mp3
+22:Cake - Hem of Your Garment.mp3
+23:Cracker - Low.mp3
+24:Four Tops - Aint No Woman Like The One Ive Got.mp3
+25:Steve Miller Band - Jet Airliner.mp3
+26:Cake - Moustache Man.mp3
+27:Donna the Buffalo - Locket and Key.mp3
+28:Maroon 5 - Sunday Morning.mp3
+29:U2 - The Sweetest Thing.mp3
+30:Talking Heads - Once in a Lifetime.mp3
+31:Arthur Conley - Sweet Soul Music.mp3
+32:Lynyrd Skynyrd -  Gimme Three Steps.mp3
+33:Dawes - From the Right Angle.mp3
+34:Barenaked Ladies - Its all Been Done.mp3
+35:Leisure - Take You Higher.mp3
+36:Jackson Browne - Running on Empty.mp3
+37:Radiohead - No Surprises.mp3
+38:The Script - Breakeven.mp3
+39:Paolo Nutini - New Shoes.mp3
+40:Jack Johnson - Red Wine Mistakes Apologies.mp3
+41:Ray Lamontagne - How Come.mp3
+playlist_end
