@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import math
 import re
 import subprocess
 import time
@@ -9,6 +10,10 @@ MUSIC_DIR = Path("/home/brispo/break-music/music")
 PORT1 = 6601
 PORT2 = 6602
 OVERLAP_SECONDS = 15
+FADE_SECONDS = 5
+FADE_STEPS = 50
+BASE_VOLUME = 100
+INCOMING_OFFSET_SECONDS = 5
 
 
 def log(msg):
@@ -60,6 +65,19 @@ def stop_track(port):
     run_mpc(port, "clear")
 
 
+def set_volume(port, volume):
+    volume = max(0, min(BASE_VOLUME, int(round(volume))))
+    run_mpc(port, "volume", str(volume))
+
+
+def seek_if_needed(port, seconds):
+    if seconds <= 0:
+        return
+    # Give MPD a moment to load the new track before seeking.
+    time.sleep(0.1)
+    run_mpc(port, "seek", str(seconds))
+
+
 def load_playlist():
     if not PLAYLIST_FILE.exists():
         raise SystemExit(f"Playlist file not found: {PLAYLIST_FILE}")
@@ -84,7 +102,9 @@ def main():
     log("Initializing MPD instances")
     stop_track(PORT1)
     stop_track(PORT2)
+    set_volume(active, BASE_VOLUME)
     play_track(active, tracks[index])
+    first_track = False
 
     while True:
         elapsed, total = get_elapsed_total(active)
@@ -121,11 +141,26 @@ def main():
                 last_log = now
 
         index = (index + 1) % len(tracks)
+        # Start incoming track muted, then fade in while outgoing fades out.
+        set_volume(standby, 0)
         play_track(standby, tracks[index])
+        if not first_track:
+            seek_if_needed(standby, INCOMING_OFFSET_SECONDS)
+
+        fade_step_time = FADE_SECONDS / FADE_STEPS
+        log(f"[mpd{active}] fading out over {FADE_SECONDS}s")
+        log(f"[mpd{standby}] fading in over {FADE_SECONDS}s")
+        for step in range(FADE_STEPS + 1):
+            theta = (step / FADE_STEPS) * (math.pi / 2.0)
+            out_gain = math.cos(theta)
+            in_gain = math.sin(theta)
+            set_volume(active, BASE_VOLUME * out_gain)
+            set_volume(standby, BASE_VOLUME * in_gain)
+            time.sleep(fade_step_time)
 
         overlap = min(OVERLAP_SECONDS, total)
         log(f"[mpd{active}] overlapping for {overlap}s")
-        time.sleep(overlap)
+        time.sleep(max(0, overlap - FADE_SECONDS))
         stop_track(active)
 
         active, standby = standby, active
