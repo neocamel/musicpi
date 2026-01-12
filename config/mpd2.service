@@ -1,5 +1,5 @@
 [Unit]
-Description=Music Player Daemon (mpd1)
+Description=Music Player Daemon (mpd2)
 Documentation=man:mpd(1) man:mpd.conf(5)
 After=network.target sound.target
 
@@ -8,7 +8,7 @@ Environment=XDG_RUNTIME_DIR=/run/user/1000
 Environment=PULSE_SERVER=unix:/run/user/1000/pulse/native
 Type=notify
 ExecStartPre=/usr/bin/setfacl -m u:mpd:rx /run/user/1000 /run/user/1000/pulse
-ExecStart=/usr/bin/mpd --systemd /etc/mpd/mpd1.conf
+ExecStart=/usr/bin/mpd --systemd /etc/mpd/mpd2.conf
 
 LimitRTPRIO=40
 LimitRTTIME=infinity
