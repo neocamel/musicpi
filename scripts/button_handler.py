@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import re
+import subprocess
 import threading
 import time
 
@@ -8,6 +10,10 @@ BUTTON_PIN = 17  # BCM numbering
 BOUNCE_SECONDS = 0.05
 DOUBLE_PRESS_WINDOW = 0.4
 HOLD_SECONDS = 2.0
+FADE_SECONDS = 5
+FADE_STEPS = 50
+BASE_VOLUME = 100
+MPD_PORTS = (6601, 6602)
 
 
 class PressDetector:
@@ -50,6 +56,7 @@ class PressDetector:
                     self.single_timer = None
                 self.pending_single = False
                 print("double press")
+                trigger_next_crossfade()
                 return
             self.pending_single = True
             self.single_timer = threading.Timer(
@@ -64,6 +71,92 @@ class PressDetector:
             self.pending_single = False
             self.single_timer = None
         print("single press")
+        handle_single_press()
+
+
+def run_mpc(port, *args, check=True):
+    cmd = ["mpc", "-p", str(port), *args]
+    result = subprocess.run(
+        cmd,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if check and result.returncode != 0:
+        raise subprocess.CalledProcessError(
+            result.returncode, cmd, output=result.stdout, stderr=result.stderr
+        )
+    return result.stdout.strip()
+
+
+def get_volume(port):
+    status = run_mpc(port, "status")
+    match = re.search(r"volume:\s*(\d+)%", status)
+    if not match:
+        return 0
+    return int(match.group(1))
+
+
+def set_volume(port, volume):
+    volume = max(0, min(BASE_VOLUME, int(round(volume))))
+    run_mpc(port, "volume", str(volume))
+
+
+def pause_if_playing(port):
+    run_mpc(port, "pause-if-playing", check=False)
+
+
+def resume_playback(port):
+    run_mpc(port, "play")
+
+
+def fade_all(target_volume):
+    step_time = FADE_SECONDS / FADE_STEPS
+    start_volumes = [get_volume(p) for p in MPD_PORTS]
+    for step in range(FADE_STEPS + 1):
+        t = step / FADE_STEPS
+        for port, start in zip(MPD_PORTS, start_volumes):
+            vol = start + (target_volume - start) * t
+            set_volume(port, vol)
+        time.sleep(step_time)
+    print(f"fade complete: target={target_volume}%")
+
+
+def handle_single_press():
+    try:
+        volumes = [get_volume(p) for p in MPD_PORTS]
+        if max(volumes) > 0:
+            print("fading down and pausing")
+            fade_all(0)
+            for port in MPD_PORTS:
+                pause_if_playing(port)
+            print("playback paused")
+            return
+
+        print("resuming and fading up")
+        for port in MPD_PORTS:
+            resume_playback(port)
+        fade_all(BASE_VOLUME)
+        print("playback resumed")
+    except subprocess.CalledProcessError as exc:
+        err = exc.stderr.strip() if exc.stderr else "unknown error"
+        print(f"mpc error: {err}")
+
+
+def trigger_next_crossfade():
+    result = subprocess.run(
+        ["sudo", "systemctl", "kill", "-s", "USR1", "crossfade-controller.service"],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if result.returncode == 0:
+        print("requested immediate crossfade (watch journalctl -u crossfade-controller -f for completion)")
+    else:
+        err = result.stderr.strip() or "unknown error"
+        print(f"crossfade signal error: {err}")
 
 
 def main():

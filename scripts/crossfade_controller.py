@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import math
 import re
+import signal
 import subprocess
 import time
 from pathlib import Path
@@ -11,9 +12,11 @@ PORT1 = 6601
 PORT2 = 6602
 OVERLAP_SECONDS = 15
 FADE_SECONDS = 5
+IMMEDIATE_FADE_SECONDS = 3
 FADE_STEPS = 50
 BASE_VOLUME = 100
 INCOMING_OFFSET_SECONDS = 5
+SKIP_REQUESTS = 0
 
 
 def log(msg):
@@ -93,6 +96,7 @@ def load_playlist():
 
 
 def main():
+    global SKIP_REQUESTS
     tracks = load_playlist()
     index = 0
     active = PORT1
@@ -123,7 +127,14 @@ def main():
         # Wait until we're OVERLAP_SECONDS from the end, recalculating
         # to avoid drift when a track started before we entered the loop.
         last_log = time.time()
+        skip_this_cycle = False
+        force_next_skip = False
         while remaining > OVERLAP_SECONDS:
+            if SKIP_REQUESTS > 0:
+                SKIP_REQUESTS -= 1
+                log(f"[mpd{active}] skip requested; starting overlap now")
+                skip_this_cycle = True
+                break
             until_overlap = max(0, remaining - OVERLAP_SECONDS)
             wait = 1 if until_overlap <= 5 else min(5, until_overlap)
             time.sleep(wait)
@@ -147,9 +158,10 @@ def main():
         if not first_track:
             seek_if_needed(standby, INCOMING_OFFSET_SECONDS)
 
-        fade_step_time = FADE_SECONDS / FADE_STEPS
-        log(f"[mpd{active}] fading out over {FADE_SECONDS}s")
-        log(f"[mpd{standby}] fading in over {FADE_SECONDS}s")
+        fade_seconds = IMMEDIATE_FADE_SECONDS if skip_this_cycle else FADE_SECONDS
+        fade_step_time = fade_seconds / FADE_STEPS
+        log(f"[mpd{active}] fading out over {fade_seconds}s")
+        log(f"[mpd{standby}] fading in over {fade_seconds}s")
         for step in range(FADE_STEPS + 1):
             theta = (step / FADE_STEPS) * (math.pi / 2.0)
             out_gain = math.cos(theta)
@@ -159,14 +171,35 @@ def main():
             time.sleep(fade_step_time)
 
         overlap = min(OVERLAP_SECONDS, total)
-        log(f"[mpd{active}] overlapping for {overlap}s")
-        time.sleep(max(0, overlap - FADE_SECONDS))
+        if skip_this_cycle:
+            overlap = min(fade_seconds, total)
+        remaining_overlap = max(0, overlap - fade_seconds)
+        log(f"[mpd{active}] overlapping for {remaining_overlap}s")
+        while remaining_overlap > 0:
+            if SKIP_REQUESTS > 0:
+                SKIP_REQUESTS -= 1
+                force_next_skip = True
+                log(f"[mpd{active}] skip requested during overlap")
+                break
+            step = min(1, remaining_overlap)
+            time.sleep(step)
+            remaining_overlap -= step
         stop_track(active)
 
         active, standby = standby, active
+        if force_next_skip:
+            SKIP_REQUESTS += 1
+        if skip_this_cycle:
+            log("immediate crossfade complete")
 
 
 if __name__ == "__main__":
+    def _handle_usr1(_sig, _frame):
+        global SKIP_REQUESTS
+        SKIP_REQUESTS += 1
+        log("skip signal received")
+
+    signal.signal(signal.SIGUSR1, _handle_usr1)
     try:
         main()
     except KeyboardInterrupt:

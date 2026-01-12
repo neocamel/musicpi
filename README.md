@@ -24,6 +24,11 @@ v4
 v5
 - Added GPIO button handler with debounce and single/double/long press detection.
 
+v6
+- Added button-driven immediate crossfade signaling.
+- Tuned immediate crossfade to 3s overlap.
+- Improved crossfade logging/skip handling.
+
 Backup MPD/system configs
 - Added config backups for MPD and ALSA state under `config/`.
 
