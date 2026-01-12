@@ -3,6 +3,7 @@ import math
 import re
 import signal
 import subprocess
+import threading
 import time
 from pathlib import Path
 
@@ -17,6 +18,7 @@ FADE_STEPS = 50
 BASE_VOLUME = 100
 INCOMING_OFFSET_SECONDS = 5
 SKIP_REQUESTS = 0
+SKIP_EVENT = threading.Event()
 
 
 def log(msg):
@@ -137,7 +139,8 @@ def main():
                 break
             until_overlap = max(0, remaining - OVERLAP_SECONDS)
             wait = 1 if until_overlap <= 5 else min(5, until_overlap)
-            time.sleep(wait)
+            SKIP_EVENT.wait(timeout=wait)
+            SKIP_EVENT.clear()
             elapsed, total = get_elapsed_total(active)
             if total <= 0:
                 break
@@ -182,7 +185,8 @@ def main():
                 log(f"[mpd{active}] skip requested during overlap")
                 break
             step = min(1, remaining_overlap)
-            time.sleep(step)
+            SKIP_EVENT.wait(timeout=step)
+            SKIP_EVENT.clear()
             remaining_overlap -= step
         stop_track(active)
 
@@ -197,6 +201,7 @@ if __name__ == "__main__":
     def _handle_usr1(_sig, _frame):
         global SKIP_REQUESTS
         SKIP_REQUESTS += 1
+        SKIP_EVENT.set()
         log("skip signal received")
 
     signal.signal(signal.SIGUSR1, _handle_usr1)

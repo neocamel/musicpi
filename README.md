@@ -34,6 +34,9 @@ v6
 v7
 - Updated MPD runtime state after button handler rollout.
 
+v8
+- Made immediate crossfade response near-instant using interruptible waits.
+
 Backup MPD/system configs
 - Added config backups for MPD and ALSA state under `config/`.
 
