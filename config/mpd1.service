@@ -7,7 +7,7 @@ After=network.target sound.target
 Environment=XDG_RUNTIME_DIR=/run/user/1000
 Environment=PULSE_SERVER=unix:/run/user/1000/pulse/native
 Type=notify
-ExecStartPre=/usr/bin/setfacl -m u:mpd:rx /run/user/1000 /run/user/1000/pulse
+ExecStartPre=/bin/sh -c 'setfacl -m u:mpd:rx /home/brispo /home/brispo/.config /home/brispo/.config/pulse; setfacl -m u:mpd:r /home/brispo/.config/pulse/cookie; for i in $(seq 1 30); do if [ -S /run/user/1000/pulse/native ]; then break; fi; sleep 1; done; if [ -d /run/user/1000/pulse ]; then setfacl -m u:mpd:rx /run/user/1000 /run/user/1000/pulse; fi'
 ExecStart=/usr/bin/mpd --systemd /etc/mpd/mpd1.conf
 
 LimitRTPRIO=40

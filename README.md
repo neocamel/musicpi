@@ -16,6 +16,11 @@ v3
 - Added 5s incoming track seek (not applied to the first track).
 - Improved crossfade controller logging and shutdown behavior.
 
+v4
+- Fixed boot-time Pulse/PipeWire auth for MPD by granting cookie access.
+- Added boot-time wait for Pulse socket before starting MPD.
+- Boot automation now starts audio reliably after reboot.
+
 Backup MPD/system configs
 - Added config backups for MPD and ALSA state under `config/`.
 
