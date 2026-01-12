@@ -1,0 +1,23 @@
+[Unit]
+Description=Music Player Daemon (mpd1)
+Documentation=man:mpd(1) man:mpd.conf(5)
+After=network.target sound.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/mpd --systemd /etc/mpd/mpd1.conf
+
+LimitRTPRIO=40
+LimitRTTIME=infinity
+LimitMEMLOCK=64M
+
+ProtectSystem=yes
+NoNewPrivileges=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+RestrictNamespaces=yes
+
+[Install]
+WantedBy=multi-user.target
