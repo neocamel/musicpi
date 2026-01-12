@@ -28,6 +28,8 @@ v6
 - Added button-driven immediate crossfade signaling.
 - Tuned immediate crossfade to 3s overlap.
 - Improved crossfade logging/skip handling.
+- Added GPIO button handler actions (fade/pause, immediate crossfade, shutdown).
+- Added button-handler systemd service for boot automation.
 
 Backup MPD/system configs
 - Added config backups for MPD and ALSA state under `config/`.

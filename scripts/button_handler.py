@@ -42,6 +42,7 @@ class PressDetector:
                 self.single_timer = None
             self.pending_single = False
         print("long press")
+        trigger_shutdown()
 
     def on_release(self):
         if self.long_press_active:
@@ -145,6 +146,10 @@ def handle_single_press():
 
 
 def trigger_next_crossfade():
+    volumes = [get_volume(p) for p in MPD_PORTS]
+    if max(volumes) <= 0:
+        print("double press ignored (volume is 0)")
+        return
     result = subprocess.run(
         ["sudo", "systemctl", "kill", "-s", "USR1", "crossfade-controller.service"],
         text=True,
@@ -159,6 +164,21 @@ def trigger_next_crossfade():
         print(f"crossfade signal error: {err}")
 
 
+def trigger_shutdown():
+    result = subprocess.run(
+        ["sudo", "systemctl", "poweroff"],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if result.returncode == 0:
+        print("shutdown requested")
+    else:
+        err = result.stderr.strip() or "unknown error"
+        print(f"shutdown error: {err}")
+
+
 def main():
     button = Button(
         BUTTON_PIN,
@@ -171,8 +191,11 @@ def main():
         f"Listening on GPIO{BUTTON_PIN} (single/double/long). "
         f"hold={HOLD_SECONDS}s double_window={DOUBLE_PRESS_WINDOW}s"
     )
-    while True:
-        time.sleep(1)
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Exiting on Ctrl+C")
 
 
 if __name__ == "__main__":
