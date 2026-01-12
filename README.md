@@ -31,6 +31,9 @@ v6
 - Added GPIO button handler actions (fade/pause, immediate crossfade, shutdown).
 - Added button-handler systemd service for boot automation.
 
+v7
+- Updated MPD runtime state after button handler rollout.
+
 Backup MPD/system configs
 - Added config backups for MPD and ALSA state under `config/`.
 
