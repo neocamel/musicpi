@@ -1,0 +1,17 @@
+[Unit]
+Description=MPD crossfade controller
+After=network.target sound.target mpd1.service mpd2.service shuffle-playlist.service
+Requires=mpd1.service mpd2.service
+Wants=shuffle-playlist.service
+
+[Service]
+Type=simple
+User=brispo
+Group=brispo
+WorkingDirectory=/home/brispo/break-music
+ExecStart=/home/brispo/break-music/scripts/crossfade_controller.py
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
