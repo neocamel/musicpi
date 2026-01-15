@@ -40,5 +40,47 @@ find /home/brispo/break-music/music -type f -name "*.mp3" -print0 | while IFS= r
 done
 find /home/brispo/break-music/music -type f -name "*.mp3" -print0 | xargs -0 rsgain custom -s i -I 3
 
-Follow crossfade controller logs:
-journalctl -u crossfade-controller -f
+Follow crossfade controller + button logs:
+journalctl -t crossfade-controller -f
+
+Load shuffled_playlist.txt into MPD queue:
+mpc -p 6601 clear
+while IFS= read -r f; do
+  [ -n "$f" ] && mpc -p 6601 add "$f"
+done < /home/brispo/break-music/shuffled_playlist.txt
+mpc -p 6601 play
+
+========================================
+Migration checklist (reflash to Raspberry Pi OS 64-bit Lite)
+
+Backup (to USB or another machine):
+- /home/brispo/break-music/
+- /etc/mpd/
+- /etc/systemd/system/ (mpd1/mpd2, crossfade-controller, shuffle-playlist, button-handler)
+- /etc/sudoers.d/ (button handler + crossfade sudo rules)
+- /boot/firmware/config.txt
+
+On the freshly flashed Lite image:
+1) Create user "brispo" (same UID if possible) and copy back:
+   - /home/brispo/break-music/
+   - /etc/mpd/
+   - /etc/systemd/system/
+   - /etc/sudoers.d/
+   - /boot/firmware/config.txt
+
+2) Install packages:
+   sudo apt update
+   sudo apt install -y mpd mpc rsgain id3v2 ffmpeg
+
+3) Ensure Pulse/pipewire user services:
+   loginctl enable-linger brispo
+   systemctl --user enable --now pipewire pipewire-pulse pipewire.socket pipewire-pulse.socket
+
+4) Reload and enable services:
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now mpd1 mpd2 shuffle-playlist crossfade-controller button-handler
+
+5) Verify:
+   mpc -p 6601 status
+   mpc -p 6602 status
+   journalctl -t crossfade-controller -f

@@ -37,6 +37,11 @@ v7
 v8
 - Made immediate crossfade response near-instant using interruptible waits.
 
+v9
+- Added Pulse readiness wait and output auto-enable in crossfade controller.
+- Added MPD service auto-restart for better reliability.
+- Added reflash/migration checklist to cheatsheet.
+
 Backup MPD/system configs
 - Added config backups for MPD and ALSA state under `config/`.
 

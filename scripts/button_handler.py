@@ -16,6 +16,14 @@ BASE_VOLUME = 100
 MPD_PORTS = (6601, 6602)
 
 
+def log(msg):
+    subprocess.run(
+        ["logger", "-t", "crossfade-controller", msg],
+        check=False,
+    )
+    print(msg)
+
+
 class PressDetector:
     def __init__(self, button):
         self.button = button
@@ -41,7 +49,7 @@ class PressDetector:
                 self.single_timer.cancel()
                 self.single_timer = None
             self.pending_single = False
-        print("long press")
+        log("long press")
         trigger_shutdown()
 
     def on_release(self):
@@ -56,7 +64,7 @@ class PressDetector:
                     self.single_timer.cancel()
                     self.single_timer = None
                 self.pending_single = False
-                print("double press")
+                log("double press")
                 trigger_next_crossfade()
                 return
             self.pending_single = True
@@ -71,7 +79,7 @@ class PressDetector:
                 return
             self.pending_single = False
             self.single_timer = None
-        print("single press")
+        log("single press")
         handle_single_press()
 
 
@@ -121,34 +129,34 @@ def fade_all(target_volume):
             vol = start + (target_volume - start) * t
             set_volume(port, vol)
         time.sleep(step_time)
-    print(f"fade complete: target={target_volume}%")
+    log(f"fade complete: target={target_volume}%")
 
 
 def handle_single_press():
     try:
         volumes = [get_volume(p) for p in MPD_PORTS]
         if max(volumes) > 0:
-            print("fading down and pausing")
+            log("fading down and pausing")
             fade_all(0)
             for port in MPD_PORTS:
                 pause_if_playing(port)
-            print("playback paused")
+            log("playback paused")
             return
 
-        print("resuming and fading up")
+        log("resuming and fading up")
         for port in MPD_PORTS:
             resume_playback(port)
         fade_all(BASE_VOLUME)
-        print("playback resumed")
+        log("playback resumed")
     except subprocess.CalledProcessError as exc:
         err = exc.stderr.strip() if exc.stderr else "unknown error"
-        print(f"mpc error: {err}")
+        log(f"mpc error: {err}")
 
 
 def trigger_next_crossfade():
     volumes = [get_volume(p) for p in MPD_PORTS]
     if max(volumes) <= 0:
-        print("double press ignored (volume is 0)")
+        log(f"double press ignored (volumes={volumes})")
         return
     result = subprocess.run(
         ["sudo", "systemctl", "kill", "-s", "USR1", "crossfade-controller.service"],
@@ -158,10 +166,10 @@ def trigger_next_crossfade():
         check=False,
     )
     if result.returncode == 0:
-        print("requested immediate crossfade (watch journalctl -u crossfade-controller -f for completion)")
+        log("requested immediate crossfade (watch journalctl -t crossfade-controller -f for completion)")
     else:
         err = result.stderr.strip() or "unknown error"
-        print(f"crossfade signal error: {err}")
+        log(f"crossfade signal error: {err}")
 
 
 def trigger_shutdown():
@@ -173,10 +181,10 @@ def trigger_shutdown():
         check=False,
     )
     if result.returncode == 0:
-        print("shutdown requested")
+        log("shutdown requested")
     else:
         err = result.stderr.strip() or "unknown error"
-        print(f"shutdown error: {err}")
+        log(f"shutdown error: {err}")
 
 
 def main():
@@ -187,7 +195,7 @@ def main():
         hold_time=HOLD_SECONDS,
     )
     PressDetector(button)
-    print(
+    log(
         f"Listening on GPIO{BUTTON_PIN} (single/double/long). "
         f"hold={HOLD_SECONDS}s double_window={DOUBLE_PRESS_WINDOW}s"
     )
@@ -195,7 +203,7 @@ def main():
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("Exiting on Ctrl+C")
+        log("Exiting on Ctrl+C")
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 import math
 import re
 import signal
+import shutil
 import subprocess
 import threading
 import time
@@ -21,13 +22,57 @@ SKIP_REQUESTS = 0
 SKIP_EVENT = threading.Event()
 
 
+LOGGER = shutil.which("logger")
+PULSE_SOCKET = Path("/run/user/1000/pulse/native")
+PULSE_WAIT_SECONDS = 10
+PULSE_RETRY_INTERVAL = 0.5
+
+
 def log(msg):
+    if LOGGER:
+        subprocess.run(
+            [LOGGER, "-t", "crossfade-controller", msg],
+            check=False,
+        )
     print(msg, flush=True)
 
 
 def run_mpc(port, *args):
     cmd = ["mpc", "-p", str(port), *args]
     return subprocess.check_output(cmd, text=True).strip()
+
+
+def run_mpc_allow_fail(port, *args):
+    cmd = ["mpc", "-p", str(port), *args]
+    result = subprocess.run(cmd, text=True, capture_output=True)
+    return result.stdout.strip()
+
+
+def wait_for_pulse():
+    if not PULSE_SOCKET.exists():
+        log(f"Pulse socket not found; waiting up to {PULSE_WAIT_SECONDS}s")
+    deadline = time.time() + PULSE_WAIT_SECONDS
+    while time.time() < deadline:
+        if PULSE_SOCKET.exists():
+            return True
+        time.sleep(PULSE_RETRY_INTERVAL)
+    log("Pulse socket still missing; continuing anyway")
+    return False
+
+
+def ensure_outputs_enabled(port):
+    output = run_mpc_allow_fail(port, "outputs")
+    if not output:
+        log(f"[mpd{port}] unable to read outputs")
+        return
+    for line in output.splitlines():
+        match = re.match(r"Output\\s+(\\d+)\\s+.*\\s+is\\s+(enabled|disabled)", line)
+        if not match:
+            continue
+        output_id, state = match.groups()
+        if state == "disabled":
+            log(f"[mpd{port}] enabling output {output_id}")
+            run_mpc_allow_fail(port, "enable", output_id)
 
 
 def parse_duration(duration_str):
@@ -59,6 +104,7 @@ def get_elapsed_total(port):
 
 def play_track(port, rel_path):
     log(f"[mpd{port}] play: {rel_path}")
+    ensure_outputs_enabled(port)
     run_mpc(port, "clear")
     run_mpc(port, "add", rel_path)
     run_mpc(port, "play")
@@ -106,6 +152,7 @@ def main():
 
     log(f"Loaded {len(tracks)} tracks from {PLAYLIST_FILE}")
     log("Initializing MPD instances")
+    wait_for_pulse()
     stop_track(PORT1)
     stop_track(PORT2)
     set_volume(active, BASE_VOLUME)
