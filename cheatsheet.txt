@@ -68,6 +68,8 @@ On the freshly flashed Lite image:
    - /etc/sudoers.d/
    - /boot/firmware/config.txt
 
+   Alternative (after cloning repo): run /home/brispo/break-music/config/install.sh
+
 2) Install packages:
    sudo apt update
    sudo apt install -y mpd mpc rsgain id3v2 ffmpeg

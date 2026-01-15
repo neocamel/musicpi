@@ -1,0 +1,12 @@
+[Unit]
+Description=Shuffle MPD playlist on boot
+After=network.target
+
+[Service]
+Type=oneshot
+User=brispo
+Group=brispo
+ExecStart=/home/brispo/break-music/scripts/shuffle_playlist.sh
+
+[Install]
+WantedBy=multi-user.target

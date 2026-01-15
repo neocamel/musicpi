@@ -1,0 +1,15 @@
+[Unit]
+Description=GPIO button handler
+After=network.target
+
+[Service]
+Type=simple
+User=brispo
+Group=brispo
+WorkingDirectory=/home/brispo/break-music
+ExecStart=/home/brispo/break-music/scripts/button_handler.py
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

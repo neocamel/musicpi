@@ -1,0 +1,28 @@
+[Unit]
+Description=Music Player Daemon (mpd1)
+Documentation=man:mpd(1) man:mpd.conf(5)
+After=network.target sound.target
+
+[Service]
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=PULSE_SERVER=unix:/run/user/1000/pulse/native
+Type=notify
+ExecStartPre=/bin/sh -c 'setfacl -m u:mpd:rx /home/brispo /home/brispo/.config /home/brispo/.config/pulse; setfacl -m u:mpd:r /home/brispo/.config/pulse/cookie; for i in $(seq 1 30); do if [ -S /run/user/1000/pulse/native ]; then break; fi; sleep 1; done; if [ -d /run/user/1000/pulse ]; then setfacl -m u:mpd:rx /run/user/1000 /run/user/1000/pulse; fi'
+ExecStart=/usr/bin/mpd --systemd /etc/mpd/mpd1.conf
+Restart=always
+RestartSec=2
+
+LimitRTPRIO=40
+LimitRTTIME=infinity
+LimitMEMLOCK=64M
+
+ProtectSystem=yes
+NoNewPrivileges=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+RestrictNamespaces=yes
+
+[Install]
+WantedBy=multi-user.target
