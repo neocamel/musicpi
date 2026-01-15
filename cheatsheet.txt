@@ -61,28 +61,24 @@ Backup (to USB or another machine):
 - /boot/firmware/config.txt
 
 On the freshly flashed Lite image:
-1) Create user "brispo" (same UID if possible) and copy back:
-   - /home/brispo/break-music/
-   - /etc/mpd/
-   - /etc/systemd/system/
-   - /etc/sudoers.d/
-   - /boot/firmware/config.txt
+1) Create user "brispo" (same UID if possible).
 
-   Alternative (after cloning repo): run /home/brispo/break-music/config/install.sh
+2) Clone repo:
+   cd /home/brispo
+   git clone https://github.com/neocamel/musicpi.git
 
-2) Install packages:
+3) Install packages:
    sudo apt update
-   sudo apt install -y mpd mpc rsgain id3v2 ffmpeg
+   sudo apt install -y mpd mpc rsgain id3v2 ffmpeg python3-gpiozero
 
-3) Ensure Pulse/pipewire user services:
+4) Ensure Pulse/pipewire user services:
    loginctl enable-linger brispo
    systemctl --user enable --now pipewire pipewire-pulse pipewire.socket pipewire-pulse.socket
 
-4) Reload and enable services:
-   sudo systemctl daemon-reload
-   sudo systemctl enable --now mpd1 mpd2 shuffle-playlist crossfade-controller button-handler
+5) Restore configs + enable services:
+   sudo /home/brispo/musicpi/config/install.sh
 
-5) Verify:
+6) Verify:
    mpc -p 6601 status
    mpc -p 6602 status
    journalctl -t crossfade-controller -f
