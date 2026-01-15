@@ -34,7 +34,8 @@ def log(msg):
             [LOGGER, "-t", "crossfade-controller", msg],
             check=False,
         )
-    print(msg, flush=True)
+    else:
+        print(msg, flush=True)
 
 
 def run_mpc(port, *args):

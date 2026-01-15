@@ -42,6 +42,9 @@ v9
 - Added MPD service auto-restart for better reliability.
 - Added reflash/migration checklist to cheatsheet.
 
+v10
+- Cleaned up duplicate journal logging by preferring syslog over stdout.
+
 Backup MPD/system configs
 - Added config backups for MPD and ALSA state under `config/`.
 

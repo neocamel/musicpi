@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import re
+import shutil
 import subprocess
 import threading
 import time
@@ -14,14 +15,17 @@ FADE_SECONDS = 5
 FADE_STEPS = 50
 BASE_VOLUME = 100
 MPD_PORTS = (6601, 6602)
+LOGGER = shutil.which("logger")
 
 
 def log(msg):
-    subprocess.run(
-        ["logger", "-t", "crossfade-controller", msg],
-        check=False,
-    )
-    print(msg)
+    if LOGGER:
+        subprocess.run(
+            ["logger", "-t", "crossfade-controller", msg],
+            check=False,
+        )
+    else:
+        print(msg)
 
 
 class PressDetector:
