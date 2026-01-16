@@ -6,7 +6,7 @@ After=network.target
 Type=oneshot
 User=brispo
 Group=brispo
-ExecStart=/home/brispo/break-music/scripts/shuffle_playlist.sh
+ExecStart=/home/brispo/musicpi/scripts/shuffle_playlist.sh
 
 [Install]
 WantedBy=multi-user.target

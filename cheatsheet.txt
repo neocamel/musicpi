@@ -1,28 +1,28 @@
 Note: view a track's ReplayGain value with:
-id3v2 -l "/home/brispo/break-music/music/Blues Traveler - But Anyway.mp3" | grep REPLAYGAIN_TRACK_GAIN
+id3v2 -l "/home/brispo/musicpi/music/Blues Traveler - But Anyway.mp3" | grep REPLAYGAIN_TRACK_GAIN
 
 Set ReplayGain for a track (clears existing gain tags first):
-rsgain custom -s d "/home/brispo/break-music/music/Blues Traveler - But Anyway.mp3"
-id3v2 --TXXX "REPLAYGAIN_TRACK_GAIN:-10.00 dB" "/home/brispo/break-music/music/Blues Traveler - But Anyway.mp3"
+rsgain custom -s d "/home/brispo/musicpi/music/Blues Traveler - But Anyway.mp3"
+id3v2 --TXXX "REPLAYGAIN_TRACK_GAIN:-10.00 dB" "/home/brispo/musicpi/music/Blues Traveler - But Anyway.mp3"
 
 Set ReplayGain for the currently playing track (clears existing gain tags first):
-mpc -p 6601 current -f "/home/brispo/break-music/music/%file%" | xargs -I{} rsgain custom -s d "{}"
-mpc -p 6601 current -f "/home/brispo/break-music/music/%file%" | xargs -I{} id3v2 --TXXX "REPLAYGAIN_TRACK_GAIN:-10.00 dB" "{}"
+mpc -p 6601 current -f "/home/brispo/musicpi/music/%file%" | xargs -I{} rsgain custom -s d "{}"
+mpc -p 6601 current -f "/home/brispo/musicpi/music/%file%" | xargs -I{} id3v2 --TXXX "REPLAYGAIN_TRACK_GAIN:-10.00 dB" "{}"
 
 Zero out a track's ReplayGain offset:
-id3v2 -r TXXX "/home/brispo/break-music/music/Blues Traveler - But Anyway.mp3"
+id3v2 -r TXXX "/home/brispo/musicpi/music/Blues Traveler - But Anyway.mp3"
 
 List all mp3s and show ReplayGain offsets:
-find /home/brispo/break-music/music -type f -name "*.mp3" -print0 | while IFS= read -r -d '' f; do
+find /home/brispo/musicpi/music -type f -name "*.mp3" -print0 | while IFS= read -r -d '' f; do
   printf "%s: " "$f"
   id3v2 -l "$f" | grep -o 'REPLAYGAIN_TRACK_GAIN[^)]*)*.*' || echo "no gain tag"
 done
 
 Auto-scan all mp3s and write ReplayGain tags (no waveform changes):
-find /home/brispo/break-music/music -type f -name "*.mp3" -print0 | xargs -0 rsgain custom -s i -I 3
+find /home/brispo/musicpi/music -type f -name "*.mp3" -print0 | xargs -0 rsgain custom -s i -I 3
 
 Full reset (wipe all tags, rebuild artist/title from filename, then reapply ReplayGain):
-find /home/brispo/break-music/music -type f -name "*.mp3" -print0 | while IFS= read -r -d '' f; do
+find /home/brispo/musicpi/music -type f -name "*.mp3" -print0 | while IFS= read -r -d '' f; do
   base="${f##*/}"
   name="${base%.mp3}"
   artist="${name%% - *}"
@@ -38,7 +38,7 @@ find /home/brispo/break-music/music -type f -name "*.mp3" -print0 | while IFS= r
     id3v2 -t "$title" "$f" >/dev/null
   fi
 done
-find /home/brispo/break-music/music -type f -name "*.mp3" -print0 | xargs -0 rsgain custom -s i -I 3
+find /home/brispo/musicpi/music -type f -name "*.mp3" -print0 | xargs -0 rsgain custom -s i -I 3
 
 Follow crossfade controller + button logs:
 journalctl -t crossfade-controller -f
@@ -47,14 +47,14 @@ Load shuffled_playlist.txt into MPD queue:
 mpc -p 6601 clear
 while IFS= read -r f; do
   [ -n "$f" ] && mpc -p 6601 add "$f"
-done < /home/brispo/break-music/shuffled_playlist.txt
+done < /home/brispo/musicpi/shuffled_playlist.txt
 mpc -p 6601 play
 
 ========================================
 Migration checklist (reflash to Raspberry Pi OS 64-bit Lite)
 
 Backup (to USB or another machine):
-- /home/brispo/break-music/
+- /home/brispo/musicpi/
 - /etc/mpd/
 - /etc/systemd/system/ (mpd1/mpd2, crossfade-controller, shuffle-playlist, button-handler)
 - /etc/sudoers.d/ (button handler + crossfade sudo rules)

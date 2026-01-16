@@ -8,8 +8,8 @@ import threading
 import time
 from pathlib import Path
 
-PLAYLIST_FILE = Path("/home/brispo/break-music/shuffled_playlist.txt")
-MUSIC_DIR = Path("/home/brispo/break-music/music")
+PLAYLIST_FILE = Path("/home/brispo/musicpi/shuffled_playlist.txt")
+MUSIC_DIR = Path("/home/brispo/musicpi/music")
 PORT1 = 6601
 PORT2 = 6602
 OVERLAP_SECONDS = 15

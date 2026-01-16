@@ -8,6 +8,9 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
+apt-get update
+apt-get install -y acl
+
 install -d /etc/mpd /etc/systemd/system /etc/sudoers.d
 install -m 0644 "$ROOT_DIR/mpd/mpd1.conf" /etc/mpd/mpd1.conf
 install -m 0644 "$ROOT_DIR/mpd/mpd2.conf" /etc/mpd/mpd2.conf
@@ -20,6 +23,11 @@ install -m 0644 "$ROOT_DIR/systemd/button-handler.service" /etc/systemd/system/b
 
 install -m 0440 "$ROOT_DIR/sudoers/musicpi-button" /etc/sudoers.d/musicpi-button
 install -m 0440 "$ROOT_DIR/sudoers/musicpi-button-poweroff" /etc/sudoers.d/musicpi-button-poweroff
+
+install -d /home/brispo/musicpi/mpd1/playlists /home/brispo/musicpi/mpd1/db
+install -d /home/brispo/musicpi/mpd2/playlists /home/brispo/musicpi/mpd2/db
+touch /home/brispo/musicpi/mpd1/state /home/brispo/musicpi/mpd2/state
+chown -R mpd:audio /home/brispo/musicpi/mpd1 /home/brispo/musicpi/mpd2
 
 systemctl daemon-reload
 systemctl enable --now mpd1 mpd2 shuffle-playlist crossfade-controller button-handler

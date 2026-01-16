@@ -45,6 +45,11 @@ v9
 v10
 - Cleaned up duplicate journal logging by preferring syslog over stdout.
 
+v14
+- Repointed all service/config/script paths to `/home/brispo/musicpi` after OS reflash.
+- Installer now installs `acl` for MPD Pulse access and recreates MPD state/playlist dirs.
+- Systemd units and MPD configs updated to match the new repo layout.
+
 Backup MPD/system configs
 - Added config backups for MPD and ALSA state under `config/`.
 

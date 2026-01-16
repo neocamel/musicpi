@@ -8,8 +8,8 @@ Wants=shuffle-playlist.service
 Type=simple
 User=brispo
 Group=brispo
-WorkingDirectory=/home/brispo/break-music
-ExecStart=/home/brispo/break-music/scripts/crossfade_controller.py
+WorkingDirectory=/home/brispo/musicpi
+ExecStart=/home/brispo/musicpi/scripts/crossfade_controller.py
 Restart=on-failure
 RestartSec=2
 

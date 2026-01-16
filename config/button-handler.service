@@ -6,8 +6,8 @@ After=network.target
 Type=simple
 User=brispo
 Group=brispo
-WorkingDirectory=/home/brispo/break-music
-ExecStart=/home/brispo/break-music/scripts/button_handler.py
+WorkingDirectory=/home/brispo/musicpi
+ExecStart=/home/brispo/musicpi/scripts/button_handler.py
 Restart=on-failure
 RestartSec=2
 
